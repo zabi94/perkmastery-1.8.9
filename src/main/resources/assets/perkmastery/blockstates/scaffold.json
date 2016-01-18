@@ -1,0 +1,10 @@
+{
+	"variants": {
+		"inventory": {
+			"model": "perkmastery:scaffold"
+		},
+		"normal": {
+			"model": "perkmastery:scaffold"
+		}
+	}
+}

@@ -1,0 +1,6 @@
+{
+    "parent": "perkmastery:item/ModItem",
+    "textures": {
+        "layer0": "perkmastery:items/boneAmulet"
+    }
+}

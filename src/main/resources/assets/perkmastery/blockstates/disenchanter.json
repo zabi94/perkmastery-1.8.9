@@ -1,0 +1,10 @@
+{
+	"variants": {
+		"inventory": {
+			"model": "perkmastery:disenchanter"
+		},
+		"normal": {
+			"model": "perkmastery:disenchanter"
+		}
+	}
+}

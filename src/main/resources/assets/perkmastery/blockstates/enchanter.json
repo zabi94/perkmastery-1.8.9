@@ -1,0 +1,10 @@
+{
+	"variants": {
+		"inventory": {
+			"model": "perkmastery:enchanter"
+		},
+		"normal": {
+			"model": "perkmastery:enchanter"
+		}
+	}
+}
