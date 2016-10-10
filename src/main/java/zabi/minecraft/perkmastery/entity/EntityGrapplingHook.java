@@ -6,7 +6,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -70,7 +70,7 @@ public class EntityGrapplingHook extends Entity {
 			return;
 		}
 
-		Vec3 movement = new Vec3(look[0], look[1], look[2]);
+		Vec3d movement = new Vec3d(look[0], look[1], look[2]);
 		if (player.isSneaking()) {
 			this.setDead();
 			return;
@@ -96,7 +96,7 @@ public class EntityGrapplingHook extends Entity {
 	}
 
 	private boolean isCollisionValid() {
-		return (this.isEntityInsideOpaqueBlock() && !this.isInsideOfMaterial(Material.water) && !this.isInsideOfMaterial(Material.lava)) || this.isInsideOfMaterial(Material.glass);
+		return (this.isEntityInsideOpaqueBlock() && !this.isInsideOfMaterial(Material.WATER) && !this.isInsideOfMaterial(Material.LAVA)) || this.isInsideOfMaterial(Material.GLASS);
 	}
 
 	public void setDead() {

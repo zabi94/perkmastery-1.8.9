@@ -3,7 +3,7 @@ package zabi.minecraft.perkmastery.entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.IChatComponent;
+import net.minecraft.util.text.ITextComponent;
 import zabi.minecraft.perkmastery.entity.ExtendedPlayer.InventoryType;
 import zabi.minecraft.perkmastery.items.ItemList;
 
@@ -80,7 +80,7 @@ public class PlayerExtraInventory implements IInventory {
 	}
 
 	@Override
-	public IChatComponent getDisplayName() {
+	public ITextComponent getDisplayName() {
 		return null;
 	}
 

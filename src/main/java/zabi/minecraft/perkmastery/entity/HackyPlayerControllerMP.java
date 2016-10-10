@@ -3,7 +3,7 @@ package zabi.minecraft.perkmastery.entity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.client.network.NetHandlerPlayClient;
-import net.minecraft.world.WorldSettings.GameType;
+import net.minecraft.world.GameType;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;

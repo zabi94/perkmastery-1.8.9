@@ -1,8 +1,7 @@
 package zabi.minecraft.perkmastery.handlers;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Random;
+import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -10,14 +9,18 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.MobEffects;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.tileentity.TileEntityFurnace;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.DamageSource;
-import net.minecraftforge.common.ChestGenHooks;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.storage.loot.LootContext;
+import net.minecraft.world.storage.loot.LootTable;
+import net.minecraft.world.storage.loot.LootTableList;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent.KeyInputEvent;
@@ -79,8 +82,8 @@ public class TickHandler {
 	// Sezione abilità
 
 	private void handleSaturation(EntityPlayer player) { // EXPLORER
-		if (ExtendedPlayer.isAbilityEnabled(player, PlayerClass.EXPLORER, 6) && !player.isPotionActive(Potion.saturation.id) && player.ticksExisted % Config.experienceCostTicksInterval == 0 && requestExperience(player)) {
-			PotionEffect pfx = new PotionEffect(Potion.saturation.id, Config.experienceCostTicksInterval, 0, false,true);// Saturation
+		if (ExtendedPlayer.isAbilityEnabled(player, PlayerClass.EXPLORER, 6) && !player.isPotionActive(MobEffects.SATURATION) && player.ticksExisted % Config.experienceCostTicksInterval == 0 && requestExperience(player)) {
+			PotionEffect pfx = new PotionEffect(MobEffects.SATURATION, Config.experienceCostTicksInterval, 0, false,true);// Saturation
 			pfx.getCurativeItems().clear();
 			player.addPotionEffect(pfx);
 		}
@@ -130,14 +133,15 @@ public class TickHandler {
 		return i - 1;
 	}
 
+	@SideOnly(Side.SERVER)
 	private void handleLootfinder(EntityPlayer player) { // EXPLORER
 		if (ExtendedPlayer.isAbilityEnabled(player, PlayerClass.EXPLORER, 3)) {
-			BlockPos bed = player.getBedLocation(player.worldObj.provider.getDimensionId());
+			BlockPos bed = player.getBedLocation(player.worldObj.provider.getDimension());
 			if (bed == null) return;
 			double distanceFromBed = player.getDistance(bed.getX(), bed.getY(), bed.getZ());
 			if (distanceFromBed > 256) {
 				if (player.worldObj.rand.nextInt(20000) == 1) {
-					ItemStack loot = getRandomLoot(player.worldObj.rand);
+					ItemStack loot = getRandomLoot(player);
 					if (loot != null) player.worldObj.spawnEntityInWorld(new EntityItem(player.worldObj, player.posX, player.posY + 1, player.posZ, loot));
 				}
 			}
@@ -164,8 +168,8 @@ public class TickHandler {
 
 	private void handleShadowForm(EntityPlayer player) { // ARCHER
 		if (ExtendedPlayer.isAbilityEnabled(player, PlayerClass.ARCHER, 6) && player.isSneaking()) {
-			if (!player.isPotionActive(Potion.invisibility)) {
-				PotionEffect pfx = new PotionEffect(Potion.invisibility.id, Config.experienceCostTicksInterval, 1, false, false);
+			if (!player.isPotionActive(MobEffects.INVISIBILITY)) {
+				PotionEffect pfx = new PotionEffect(MobEffects.INVISIBILITY, Config.experienceCostTicksInterval, 1, false, false);
 				pfx.getCurativeItems().clear();
 				player.addPotionEffect(pfx);
 			}
@@ -216,8 +220,8 @@ public class TickHandler {
 
 	private void handleFastMiner(EntityPlayer player) {// MINER
 		if (ExtendedPlayer.isAbilityEnabled(player, PlayerClass.MINER, 1)) {
-			if (player.getHeldItem() != null && (/* validItems.contains(player.getHeldItem().getItem()) || */IntegrationHelper.isPickaxe(player.getHeldItem())) && !player.isPotionActive(Potion.digSpeed.id)) {
-				PotionEffect pfx = new PotionEffect(Potion.digSpeed.id, 0, 0, false,false);// Haste
+			if (player.getHeldItem(player.getActiveHand()) != null && (/* validItems.contains(player.getHeldItem().getItem()) || */IntegrationHelper.isPickaxe(player.getHeldItem(player.getActiveHand()))) && !player.isPotionActive(MobEffects.HASTE)) {
+				PotionEffect pfx = new PotionEffect(MobEffects.HASTE, 0, 0, false,false);// Haste
 				pfx.getCurativeItems().clear();
 				player.addPotionEffect(pfx);
 			}
@@ -228,21 +232,23 @@ public class TickHandler {
 	private void handleKnight(EntityPlayer player) { // WARRIOR
 		if (ExtendedPlayer.isAbilityEnabled(player, PlayerClass.WARRIOR, 4)) {
 			if (player.ticksExisted % 40 < 2 && player.isRiding()) {
-				Iterator<EntityLivingBase> i = player.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, player.ridingEntity.getCollisionBoundingBox().expand(3, 3, 3)).iterator();
-				while (i.hasNext()) {
-					EntityLivingBase et = i.next();
-					if (!et.equals(player) && !et.equals(player.ridingEntity)) et.attackEntityFrom(DamageSource.causePlayerDamage(player), 2F);
-				}
+				
+				player.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, player.getRidingEntity().getCollisionBoundingBox().expand(3, 3, 3)).stream()
+				.filter(et -> !et.equals(player) && !et.equals(player.getRidingEntity()))
+				.forEach(et -> {
+					et.attackEntityFrom(DamageSource.causePlayerDamage(player), 2F);
+				});
+				
 			}
 		}
 
 	}
 
 	private void handleFloorLayer(EntityPlayer player) { // BUILDER
-		if (ExtendedPlayer.isAbilityEnabled(player, PlayerClass.BUILDER, 5) && player.getHeldItem() != null && player.isSneaking() && Block.getBlockFromItem(player.getHeldItem().getItem()) != Blocks.air && player.onGround) {
+		if (ExtendedPlayer.isAbilityEnabled(player, PlayerClass.BUILDER, 5) && player.getHeldItem(player.getActiveHand()) != null && player.isSneaking() && Block.getBlockFromItem(player.getHeldItemMainhand().getItem()) != Blocks.AIR && player.onGround) {
 			int y = (int) (player.posY - 0.5);
 
-			ItemStack is = player.getHeldItem();
+			ItemStack is = player.getHeldItemMainhand();
 			int px = (int) Math.floor(player.posX);
 			int pz = (int) Math.floor(player.posZ);
 
@@ -284,24 +290,23 @@ public class TickHandler {
 	}
 
 	// Sezione metodi servizio
-
-	private ItemStack getRandomLoot(Random rnd) {
-		ItemStack res = null;
-		while (res == null) {
-			res = ChestGenHooks.getOneItem(ChestGenHooks.STRONGHOLD_CORRIDOR, rnd);
-		}
-		return res;
+	@SideOnly(Side.SERVER)
+	private ItemStack getRandomLoot(EntityPlayer player) {
+		LootTable loottable = player.worldObj.getLootTableManager().getLootTableFromLocation(LootTableList.CHESTS_SIMPLE_DUNGEON);
+		LootContext.Builder b = new LootContext.Builder((WorldServer) player.worldObj).withPlayer(player).withLuck(player.getLuck());
+		List<ItemStack> list = loottable.generateLootForPools(player.getRNG(), b.build());
+		return list.get(0);
 	}
 
 	public void testAndPlace(ItemStack is, int px, int y, int pz, EntityPlayer player) {
 		BlockPos posn=new BlockPos(px, y, pz);
-		if (is.stackSize > 0 && (player.worldObj.isAirBlock(posn) || player.worldObj.getBlockState(posn).getBlock().isFoliage(player.worldObj, posn)) && Block.getBlockFromItem(is.getItem()).isNormalCube(player.worldObj, posn)) {
-			Block blk=Block.getBlockFromItem(player.getHeldItem().getItem());
-			IBlockState state=blk.getStateFromMeta(player.getHeldItem().getItemDamage());
+		if (is.stackSize > 0 && (player.worldObj.isAirBlock(posn) || player.worldObj.getBlockState(posn).getBlock().isFoliage(player.worldObj, posn)) && Block.getBlockFromItem(is.getItem()).isNormalCube(player.worldObj.getBlockState(posn))) {
+			Block blk=Block.getBlockFromItem(player.getHeldItemMainhand().getItem());
+			IBlockState state=blk.getStateFromMeta(player.getHeldItemMainhand().getItemDamage());
 			player.worldObj.setBlockState(posn, state);
 			if (!player.capabilities.isCreativeMode) {
 				is.stackSize--;
-				if (is.stackSize == 0) player.setCurrentItemOrArmor(0, null);
+				if (is.stackSize == 0) player.setHeldItem(EnumHand.MAIN_HAND, null);
 			}
 
 		}
